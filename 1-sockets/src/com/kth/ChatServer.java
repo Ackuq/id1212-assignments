@@ -9,6 +9,29 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class ChatServer {
+  private class HandleClient extends Thread {
+
+    ChatServer server;
+    Client client;
+
+    public HandleClient(Client client, ChatServer server) {
+      this.client = client;
+      this.server = server;
+    }
+
+    @Override
+    public void run() {
+      String text = "";
+      try {
+        while ((text = this.client.in.readLine()) != null) {
+          System.out.println(String.format("Received message %s", text));
+          this.server.broadcast(this.client, text);
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
 
   public class Client {
     PrintStream out;
@@ -27,12 +50,12 @@ public class ChatServer {
   }
 
   private static int port = 3000;
-  public ArrayList<Client> clients;
+  public ArrayList<Client> clients = new ArrayList<Client>();
 
   public void broadcast(Client client, String message) {
     this.clients.forEach((c) -> {
       if (client != c) {
-        c.out.println(message);
+        c.out.println(String.format("%s says: %s", client.name, message));
       }
     });
   }
