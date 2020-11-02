@@ -4,91 +4,96 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Hashtable;
-import java.util.Random;
 import java.util.UUID;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class HTTPServer {
 
-  public static class Client {
-    public int goal;
-    public int guesses;
-
-    public Client(){
-      Random random = new Random();
-      this.goal = random.nextInt(100) + 1;
-      this.guesses = 0;
-    }
-
-    public void incrementGuesses(){
-      this.guesses++;
-    }
+  private static void sendHTML(DataOutputStream out, String cookieHeader, String reply) throws IOException {
+    String HTTPHeader = "HTTP/1.1 200 OK";
+    String contentType = "Content-Type: text/html";
+    String html = String.format(
+        "<!DOCTYPE html><html><body><form method='GET'><span>%s</span><input name='guess' type='number'/></form></body></html>",
+        reply);
+    out.writeBytes(HTTPHeader + "\r\n" + contentType + "\r\n" + cookieHeader + "\r\n\r\n" + html);
   }
 
-  public static void main(String[] args) throws IOException{
-
-
-    String html = "<html><body><form method='GET'><input name='guess' type='number'/></form></body></html>";
-    String HTTPHeader = "HTTP/1.1 200 OK\n";
+  public static void main(String[] args) throws IOException {
     String cookieHeader = "";
     int port = 4000;
     ServerSocket serverSocket = new ServerSocket(port);
-    Socket socket = null;;
+    Socket socket = null;
     String text = "";
-    int j = 0;
 
-    Hashtable<String, Client> storage = new Hashtable<String, Client>();
-    
+    Hashtable<String, Guesser> storage = new Hashtable<String, Guesser>();
 
-    while((socket = serverSocket.accept()) != null){
+    while ((socket = serverSocket.accept()) != null) {
       BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-      
-      Client currentClient;
+
+      Guesser currentClient;
       String cookie = "";
-      while( (text = in.readLine()) != null && !text.isEmpty()){
+      String reply = "";
+      String guess = null;
 
-        if(text.startsWith("GET") && text.contains("?guess=")){
-          String guess = text.split("?guess=")[1];
+      while ((text = in.readLine()) != null && !text.isEmpty()) {
+        if (!text.startsWith("GET")) {
+          break;
+        } else if (text.contains("?guess=")) {
+          Pattern r = Pattern.compile("\\?guess=(\\d+)");
+          System.out.println(text);
+          Matcher m = r.matcher(text);
+          System.out.println(m.);
+          // guess = text.split("\\?guess=[\d*]", 0)[1];
         }
 
-        if(text.startsWith("Cookie")){
-          cookie = parseCookieId(text); 
+        if (text.startsWith("Cookie")) {
+          cookie = parseCookieId(text);
         }
       }
-      
-      if(cookie.equals("") || !storage.containsKey(cookie)){
+
+      if (cookie.equals("") || !storage.containsKey(cookie)) {
         String id = UUID.randomUUID().toString();
-        currentClient = new Client();
+        currentClient = new Guesser(id);
         storage.put(id, currentClient);
-        cookieHeader = "Set-Cookie: id=" + id + "\n";
-      }
-      else{
+        cookieHeader = "Set-Cookie: id=" + id;
+      } else {
         currentClient = storage.get(cookie);
       }
 
-      out.writeBytes(HTTPHeader + cookieHeader + "\r\n\r\n" + html);
-      
+      if (guess != null) {
+        int cmp = currentClient.guess(Integer.parseInt(guess));
+        if (cmp < 0) {
+          reply = "That's too low. Please guess higher";
+        } else if (cmp > 0) {
+          reply = "That's too high. Please guess low";
+        } else {
+          reply = String.format("You made it in %d amount of guess(es)", currentClient.getGuesses());
+          storage.remove(currentClient.getId());
+        }
+      }
+
+      sendHTML(out, cookieHeader, reply);
+
       out.close();
       in.close();
     }
+    serverSocket.close();
   }
 
+  public static String parseCookieId(String cookieLine) {
 
-  public static String parseCookieId(String cookieLine){
-    
     String request = cookieLine.split(" ", 2)[1];
     String[] cookies = request.split("; ", 0);
-    
-    for(int i = 0; i < cookies.length; i++){
-      if(cookies[i].startsWith("id=")){
+
+    for (int i = 0; i < cookies.length; i++) {
+      if (cookies[i].startsWith("id=")) {
         return cookies[i].split("=")[1];
       }
     }
     return "";
 
   }
-
-  
 
 }
