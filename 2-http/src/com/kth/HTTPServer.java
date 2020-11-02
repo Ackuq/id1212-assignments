@@ -18,11 +18,9 @@ public class HTTPServer {
   }
 
   public static void main(String[] args) throws IOException {
-    String cookieHeader = "";
     int port = 4000;
     ServerSocket serverSocket = new ServerSocket(port);
     Socket socket = null;
-    String text = "";
 
     Hashtable<String, Guesser> storage = new Hashtable<String, Guesser>();
 
@@ -30,18 +28,18 @@ public class HTTPServer {
       BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
+      String cookieHeader = "";
       Guesser currentClient;
       String cookie = "";
       String reply = "";
       String guess = null;
+      String text = in.readLine();
+
+      if (text.contains("?guess=")) {
+        guess = text.split("/?guess=")[1].split(" ")[0];
+      }
 
       while ((text = in.readLine()) != null && !text.isEmpty()) {
-        if (!text.startsWith("GET")) {
-          break;
-        } else if (text.contains("?guess=")) {
-          guess = text.split("/?guess=")[1].split(" ")[0];
-        }
-
         if (text.startsWith("Cookie")) {
           cookie = parseCookieId(text);
         }
@@ -55,18 +53,19 @@ public class HTTPServer {
       } else {
         currentClient = storage.get(cookie);
       }
-      System.out.println(guess);
-      if (guess != null) {
-        System.out.println("Test");
+
+      if (guess != null && !guess.isEmpty()) {
         int cmp = currentClient.guess(Integer.parseInt(guess));
-        if (cmp < 0) {
-          reply = "That's too low. Please guess higher";
-        } else if (cmp > 0) {
-          reply = "That's too high. Please guess low";
-        } else {
-          reply = String.format("You made it in %d amount of guess(es)", currentClient.getGuesses());
+        if (cmp == 0) {
+          reply = String.format("You made it in %d amount of guess(es): ", currentClient.getGuesses());
           storage.remove(currentClient.getId());
+        } else if (cmp > 0) {
+          reply = "That's too high. Please guess low: ";
+        } else {
+          reply = "That's too low. Please guess higher: ";
         }
+      } else {
+        reply = "Start new game: ";
       }
 
       sendHTML(out, cookieHeader, reply);
@@ -78,7 +77,6 @@ public class HTTPServer {
   }
 
   public static String parseCookieId(String cookieLine) {
-
     String request = cookieLine.split(" ", 2)[1];
     String[] cookies = request.split("; ", 0);
 
