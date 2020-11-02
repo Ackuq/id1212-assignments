@@ -8,12 +8,14 @@ import java.util.UUID;
 
 public class HTTPServer {
 
-  private static void sendHTML(DataOutputStream out, String cookieHeader, String reply) throws IOException {
+  private static void sendHTML(DataOutputStream out, String cookieHeader, String reply, boolean restart)
+      throws IOException {
     String HTTPHeader = "HTTP/1.1 200 OK";
     String contentType = "Content-Type: text/html";
-    String html = String.format(
-        "<!DOCTYPE html><html><body><form method='GET'><span>%s</span><input name='guess' type='number'/></form></body></html>",
-        reply);
+    String inputTag = restart ? "<input type='submit' value='restart'/>"
+        : "<input name='guess' type='number' min='1' max='100'/>";
+    String html = String.format("<!DOCTYPE html><html><body><form method='GET'><span>%s</span>%s</form></body></html>",
+        reply, inputTag);
     out.writeBytes(HTTPHeader + "\r\n" + contentType + "\r\n" + cookieHeader + "\r\n\r\n" + html);
   }
 
@@ -59,16 +61,18 @@ public class HTTPServer {
         if (cmp == 0) {
           reply = String.format("You made it in %d amount of guess(es): ", currentClient.getGuesses());
           storage.remove(currentClient.getId());
+          sendHTML(out, cookieHeader, reply, true);
         } else if (cmp > 0) {
-          reply = "That's too high. Please guess low: ";
+          reply = "That's too high. Please guess lower: ";
+          sendHTML(out, cookieHeader, reply, false);
         } else {
           reply = "That's too low. Please guess higher: ";
+          sendHTML(out, cookieHeader, reply, false);
         }
       } else {
-        reply = "Start new game: ";
+        reply = "Guess a number between 1 and 100: ";
+        sendHTML(out, cookieHeader, reply, false);
       }
-
-      sendHTML(out, cookieHeader, reply);
 
       out.close();
       in.close();
