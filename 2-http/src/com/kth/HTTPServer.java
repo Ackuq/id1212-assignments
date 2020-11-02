@@ -23,7 +23,7 @@ public class HTTPServer {
     int port = 4000;
     ServerSocket serverSocket = new ServerSocket(port);
     Socket socket = null;
-
+    System.out.println("Server listening on port " + port);
     Hashtable<String, Guesser> storage = new Hashtable<String, Guesser>();
 
     while ((socket = serverSocket.accept()) != null) {
@@ -43,7 +43,7 @@ public class HTTPServer {
 
       while ((text = in.readLine()) != null && !text.isEmpty()) {
         if (text.startsWith("Cookie")) {
-          cookie = parseCookieId(text);
+          cookie = parseCookieId(text).trim();
         }
       }
 
@@ -92,5 +92,4 @@ public class HTTPServer {
     return "";
 
   }
-
 }
