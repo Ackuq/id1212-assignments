@@ -5,8 +5,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Hashtable;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class HTTPServer {
 
@@ -41,11 +39,7 @@ public class HTTPServer {
         if (!text.startsWith("GET")) {
           break;
         } else if (text.contains("?guess=")) {
-          Pattern r = Pattern.compile("\\?guess=(\\d+)");
-          System.out.println(text);
-          Matcher m = r.matcher(text);
-          System.out.println(m.);
-          // guess = text.split("\\?guess=[\d*]", 0)[1];
+          guess = text.split("/?guess=")[1].split(" ")[0];
         }
 
         if (text.startsWith("Cookie")) {
@@ -61,8 +55,9 @@ public class HTTPServer {
       } else {
         currentClient = storage.get(cookie);
       }
-
+      System.out.println(guess);
       if (guess != null) {
+        System.out.println("Test");
         int cmp = currentClient.guess(Integer.parseInt(guess));
         if (cmp < 0) {
           reply = "That's too low. Please guess higher";
