@@ -16,21 +16,61 @@ import javax.persistence.Id;
  * @author axel
  */
 @Entity
-public class User implements Serializable {
+public class UserBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    private String email;
+    private String password;
+    private String username;
 
+    /**
+     * 
+     * Getters
+     * 
+     */
+    
+    
     public Long getId() {
-        return id;
+        return this.id;
     }
+    
+    public String getEmail() {
+        return this.email;
+    }
+    
+    public String getPassword() {
+        return this.password;
+    }
+    
+    public String getUsername() {
+        return this.username;
+    }
+    
+    /**
+    * 
+    * Setters
+    * 
+    */
 
     public void setId(Long id) {
         this.id = id;
     }
-
+    
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    
+    public void setUsername(String username) {
+        this.username = username;
+    }
+   
     @Override
     public int hashCode() {
         int hash = 0;
@@ -41,10 +81,10 @@ public class User implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof User)) {
+        if (!(object instanceof UserBean)) {
             return false;
         }
-        User other = (User) object;
+        UserBean other = (UserBean) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
