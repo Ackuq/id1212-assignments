@@ -3,6 +3,7 @@
   <persistence-unit name="com.kth_Assignment3_war_1.0PU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>com.kth.assignment3.models.Quiz</class>
+    <class>com.kth.assignment3.models.User</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/quiz?zeroDateTimeBehavior=CONVERT_TO_NULL"/>

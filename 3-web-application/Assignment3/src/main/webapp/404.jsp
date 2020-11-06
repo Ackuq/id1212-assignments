@@ -1,5 +1,5 @@
 <%-- 
-    Document   : login
+    Document   : 404
     Created on : Nov 6, 2020, 9:42:50 AM
     Author     : axel
 --%>
@@ -9,9 +9,9 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
+        <title>Not found</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <h1>4040 - The page you were looking for is in a another castle :(</h1>
     </body>
 </html>

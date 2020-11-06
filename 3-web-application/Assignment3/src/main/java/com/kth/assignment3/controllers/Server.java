@@ -17,9 +17,11 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author axel
  */
-@WebServlet(name = "HttpServlet", urlPatterns = {"/HttpServlet"})
+@WebServlet(name = "HttpServlet", urlPatterns = {"/HttpServlet", "/login"})
 public class Server extends HttpServlet {
 
+    private static final String LOGIN_ENDPOINT = "/login";
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -60,7 +62,7 @@ public class Server extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response);
     }
-
+   
     /**
      * Handles the HTTP <code>POST</code> method.
      *
@@ -72,9 +74,33 @@ public class Server extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        switch(request.getServletPath()){
+            case LOGIN_ENDPOINT:
+                handleLogin(request, response);
+            default:
+                handle404(request, response);
+        }
     }
+    
+    /**
+     * 
+     * Handlers for specific endpoints
+     * 
+     */
 
+    protected void handle404(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        response.setStatus(404);
+        request.getRequestDispatcher("/404.jsp").forward(request, response);
+    }
+    
+    protected void handleLogin(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        String message  = "Wrong credentials";
+        request.setAttribute("message", message);
+        request.getRequestDispatcher("/index.jsp").forward(request, response);
+    }
+    
     /**
      * Returns a short description of the servlet.
      *
