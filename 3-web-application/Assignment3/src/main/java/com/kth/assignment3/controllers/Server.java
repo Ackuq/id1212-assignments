@@ -77,6 +77,7 @@ public class Server extends HttpServlet {
         switch(request.getServletPath()){
             case LOGIN_ENDPOINT:
                 handleLogin(request, response);
+                break;
             default:
                 handle404(request, response);
         }
@@ -91,7 +92,6 @@ public class Server extends HttpServlet {
     protected void handle404(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         response.setStatus(404);
-        request.getRequestDispatcher("/404.jsp").forward(request, response);
     }
     
     protected void handleLogin(HttpServletRequest request, HttpServletResponse response) 
