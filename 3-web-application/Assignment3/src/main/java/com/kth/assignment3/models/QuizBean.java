@@ -16,7 +16,7 @@ import javax.persistence.Id;
  * @author axel
  */
 @Entity
-public class Quiz implements Serializable {
+public class QuizBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -41,10 +41,10 @@ public class Quiz implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Quiz)) {
+        if (!(object instanceof QuizBean)) {
             return false;
         }
-        Quiz other = (Quiz) object;
+        QuizBean other = (QuizBean) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }

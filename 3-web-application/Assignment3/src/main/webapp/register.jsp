@@ -13,8 +13,8 @@
         <title>Login / Register</title>
     </head>
     <body>
-        <h1>Login / Register</h1>
-        <h1>${message}</h1>
+        <h1>Pick username</h1>
+        <h1><%=request.getParameter("message")%></h1>
         <form method="POST" action="/Assignment3/login">
             <input name="email" placeholder="E-mail" type="email" />
             <input name="password" placeholder="Password" type="password" />

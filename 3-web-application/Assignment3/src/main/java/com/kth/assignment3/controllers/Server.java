@@ -5,29 +5,33 @@
  */
 package com.kth.assignment3.controllers;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.kth.assignment3.models.*;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.ServletContext;
 
+import javax.persistence.*;
 
 /**
  *
  * @author axel
  */
-@WebServlet(name = "HttpServlet", urlPatterns = {"/HttpServlet", "/login"})
+@WebServlet(name = "HttpServlet", urlPatterns = {"/HttpServlet", "/login", "/"})
 public class Server extends HttpServlet {
-
+    
     private static final String LOGIN_ENDPOINT = "/login";
+       
+    private static final EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("com.kth_Assignment3_war_1.0PU");
+    
+    @PersistenceContext
+    private final EntityManager entityManager = emFactory.createEntityManager();
+   
     
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -41,17 +45,17 @@ public class Server extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet HttpServlet</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet HttpServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
+        
+        ServletContext sc = getServletContext();
+        
+        if(sc.getAttribute("quiz") == null) {
+            sc.setAttribute("quiz", new QuizBean());
+        }
+        
+        HttpSession session = request.getSession(true);
+        
+        if(session.isNew()) {
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
     }
 
@@ -103,11 +107,33 @@ public class Server extends HttpServlet {
     
     protected void handleLogin(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
         
+        UserBean user = entityManager.find(UserBean.class, email);
         
-        String message  = "Wrong credentials";
-        request.setAttribute("message", message);
-        request.getRequestDispatcher("/index.jsp").forward(request, response);
+        HttpSession session = request.getSession(true);
+        
+        if(user == null) {
+            UserBean newUser = new UserBean();
+            entityManager.getTransaction().begin();
+            newUser.setEmail(email);
+            newUser.setPassword(password);
+            entityManager.persist(newUser);
+            entityManager.getTransaction().commit();
+            session.setAttribute("user", newUser);
+            request.getRequestDispatcher("/register.jsp").forward(request, response);
+        } else if(!user.getPassword().equals(password)) {
+            String message  = "Wrong credentials";
+            request.setAttribute("message", message);
+            request.getRequestDispatcher("/index.jsp").forward(request, response);
+        } else if(user.getUsername() == null) {
+            session.setAttribute("user", user);
+            request.getRequestDispatcher("/register.jsp").forward(request, response);
+        } else {
+            session.setAttribute("user", user);
+            request.getRequestDispatcher("/quiz.jsp").forward(request, response);
+        }
     }
     
     

@@ -6,10 +6,10 @@
 package com.kth.assignment3.models;
 
 import java.io.Serializable;
+
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Column;
 
 /**
  *
@@ -17,34 +17,27 @@ import javax.persistence.Id;
  */
 @Entity
 public class UserBean implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
     private String email;
     private String password;
     private String username;
-
+    
     /**
      * 
      * Getters
      * 
      */
-    
-    
-    public Long getId() {
-        return this.id;
-    }
-    
+    @Id
+    @Column(name = "email")
     public String getEmail() {
         return this.email;
     }
-    
+        
+    @Column(name = "password")
     public String getPassword() {
         return this.password;
     }
     
+    @Column(name = "username")
     public String getUsername() {
         return this.username;
     }
@@ -54,10 +47,6 @@ public class UserBean implements Serializable {
     * Setters
     * 
     */
-
-    public void setId(Long id) {
-        this.id = id;
-    }
     
     public void setEmail(String email) {
         this.email = email;
@@ -74,18 +63,17 @@ public class UserBean implements Serializable {
     @Override
     public int hashCode() {
         int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        hash += (email != null ? email.hashCode() : 0);
         return hash;
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof UserBean)) {
             return false;
         }
         UserBean other = (UserBean) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+        if ((this.email == null && other.email != null) || (this.email != null && !this.email.equals(other.email))) {
             return false;
         }
         return true;
@@ -93,7 +81,7 @@ public class UserBean implements Serializable {
 
     @Override
     public String toString() {
-        return "com.kth.assignment3.models.User[ id=" + id + " ]";
+        return "com.kth.assignment3.models.User[ email=" + email + " ]";
     }
     
 }
