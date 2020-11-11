@@ -23,7 +23,7 @@ import javax.persistence.*;
  * @author axel
  */
 @WebServlet(name = "HttpServlet", urlPatterns = {"/HttpServlet", "/login", "/"})
-public class Server extends HttpServlet {
+public class ServerController extends HttpServlet {
     
     private static final String LOGIN_ENDPOINT = "/login";
        
@@ -55,6 +55,9 @@ public class Server extends HttpServlet {
         HttpSession session = request.getSession(true);
         
         if(session.isNew()) {
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+        }
+        else {
             request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
     }
