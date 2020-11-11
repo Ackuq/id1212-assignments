@@ -21,6 +21,7 @@ import javax.persistence.*;
 public class UserController extends HttpServlet {
     
     private static final String LOGIN_ENDPOINT = "/login";
+    private static final String LOGOUT_ENDPOINT = "/logout";
     private static final String REGISTER_ENDPOINT = "/register";
        
     private static final EntityManagerFactory emFactory = Persistence.createEntityManagerFactory("com.kth_Assignment3_war_1.0PU");
@@ -36,7 +37,7 @@ public class UserController extends HttpServlet {
         HttpSession session = request.getSession(true);
         
         if(session.isNew()) {
-            request.getRequestDispatcher("/index.jsp").forward(request, response);
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         } else {
             response.sendRedirect("/Assignment3/quiz/");
         }
@@ -59,6 +60,9 @@ public class UserController extends HttpServlet {
             case REGISTER_ENDPOINT:
                 handleRegister(request, response);
                 break;
+            case LOGOUT_ENDPOINT:
+                handleLogout(request, response);
+                break;
             default:
                 handle404(request, response);
         }
@@ -78,7 +82,7 @@ public class UserController extends HttpServlet {
         
         
         if(session == null) {
-            request.getRequestDispatcher("/index.jsp").forward(request, response);
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         } else if(username.equals("") || username == null) {
             String message  = "Username required";
             request.setAttribute("message", message);
@@ -96,7 +100,7 @@ public class UserController extends HttpServlet {
             entityManager.getTransaction().commit();
             
             session.setAttribute("user", newUser);
-            request.getRequestDispatcher("/quiz").forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/");
         }
         
     }
@@ -122,10 +126,21 @@ public class UserController extends HttpServlet {
         } else if(!user.getPassword().equals(password)) {
             String message  = "Wrong credentials";
             request.setAttribute("message", message);
-            request.getRequestDispatcher("/index.jsp").forward(request, response);
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         } else {
             session.setAttribute("user", user);
-            response.sendRedirect("/Assignment3/quiz");
+            response.sendRedirect(request.getContextPath() + "/");
         }
+    }
+    
+    protected void handleLogout(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        
+        if(session != null) {
+            session.invalidate();
+        }
+        
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 }

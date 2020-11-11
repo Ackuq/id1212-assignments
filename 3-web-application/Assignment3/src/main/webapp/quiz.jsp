@@ -8,7 +8,7 @@
     <body style="text-align: center">
         <h1>Question ${current}</h1>
         <h4>${question}</h4>
-        <form method="POST" action="/Assignment3/quiz" style="display: flex; flex-direction: column; align-items:  center">
+        <form method="POST" action="/Assignment3/" style="display: flex; flex-direction: column; align-items:  center">
             <div>
                 <input id="a" type="radio" name="answer" value="1"  />
                 <label for="a">${a}</label>
@@ -27,6 +27,11 @@
             </div>
             <br/>
             <button type="submit" style="width: 100px">Submit</button>
+        </form>
+        <br/>
+        <br/>
+        <form method="POST" action="/Assignment3/logout">
+            <button type="submit">Logout</button>
         </form>
     </body>
 </html>

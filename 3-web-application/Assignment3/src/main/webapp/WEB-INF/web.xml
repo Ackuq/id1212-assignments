@@ -10,6 +10,7 @@
         <url-pattern>/admin</url-pattern>
         <url-pattern>/add-quiz</url-pattern>
         <url-pattern>/reset-quiz</url-pattern>
+        <url-pattern>/</url-pattern>
     </servlet-mapping>
     <servlet>
         <servlet-name>UserController</servlet-name>
@@ -19,6 +20,7 @@
         <servlet-name>UserController</servlet-name>
         <url-pattern>/login</url-pattern>
         <url-pattern>/register</url-pattern>
+        <url-pattern>/logout</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

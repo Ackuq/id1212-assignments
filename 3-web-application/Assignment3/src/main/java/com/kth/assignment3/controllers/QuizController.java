@@ -27,7 +27,7 @@ import javax.servlet.http.HttpSession;
 @WebServlet(name = "QuizServlet")
 public class QuizController extends HttpServlet {
     
-    private static final String QUIZ_ENDPOINT = "/quiz";
+    private static final String QUIZ_ENDPOINT = "/";
     private static final String ADMIN_ENDPOINT = "/admin";
     private static final String ADD_QUIZ_ENDPOINT = "/add-quiz";
     private static final String RESET_QUIZ_ENDPOINT = "/reset-quiz";
@@ -40,12 +40,17 @@ public class QuizController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        request.getRequestDispatcher("/quiz.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/");
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        if(!handleAuthenticate(request, response)) {
+            return;
+        }
+        
         switch(request.getServletPath()) {
             case ADMIN_ENDPOINT:
                 handleAdmin(request, response);
@@ -62,6 +67,11 @@ public class QuizController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        if(!handleAuthenticate(request, response)) {
+            return;
+        }
+        
         switch(request.getServletPath()) {
             case ADD_QUIZ_ENDPOINT:
                 handleAddQuiz(request, response);
@@ -79,6 +89,16 @@ public class QuizController extends HttpServlet {
     
     
     // Request handlers
+    
+    private boolean handleAuthenticate(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if(session == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return false;
+        }
+        return true;
+    }
     
     private void handleAdmin(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -113,7 +133,7 @@ public class QuizController extends HttpServlet {
             throws ServletException, IOException {
         
         HttpSession session = request.getSession(false);
-        
+
         int currentIndex = 0;
         
         Object storedIndex = session.getAttribute("quizIndex");
@@ -161,7 +181,7 @@ public class QuizController extends HttpServlet {
         }
         session.setAttribute("quizIndex", ++currentIndex);
         
-        response.sendRedirect("/Assignment3/quiz");
+        response.sendRedirect(request.getContextPath() + "/quiz");
     }
     
     private void handleResetQuiz(HttpServletRequest request, HttpServletResponse response)
@@ -171,6 +191,6 @@ public class QuizController extends HttpServlet {
         session.setAttribute("quizIndex", 0);
         session.setAttribute("score", 0);
         
-        response.sendRedirect("/Assignment3/quiz");
+        response.sendRedirect(request.getContextPath() + "/quiz");
     }
 }
