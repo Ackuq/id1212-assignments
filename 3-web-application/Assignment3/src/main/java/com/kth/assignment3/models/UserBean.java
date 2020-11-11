@@ -68,18 +68,6 @@ public class UserBean implements Serializable {
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof UserBean)) {
-            return false;
-        }
-        UserBean other = (UserBean) object;
-        if ((this.email == null && other.email != null) || (this.email != null && !this.email.equals(other.email))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
     public String toString() {
         return "com.kth.assignment3.models.User[ email=" + email + " ]";
     }

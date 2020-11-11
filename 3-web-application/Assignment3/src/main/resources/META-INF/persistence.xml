@@ -4,7 +4,7 @@
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>com.kth.assignment3.models.UserBean</class>
     <class>com.kth.assignment3.integrations.UserDAO</class>
-    <class>com.kth.assignment3.models.QuizBean</class>
+    <class>com.kth.assignment3.models.QuestionBean</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/quiz?zeroDateTimeBehavior=CONVERT_TO_NULL"/>

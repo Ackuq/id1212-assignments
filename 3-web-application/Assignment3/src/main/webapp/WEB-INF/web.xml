@@ -6,7 +6,19 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>QuizController</servlet-name>
-        <url-pattern>/Quiz</url-pattern>
+        <url-pattern>/quiz</url-pattern>
+        <url-pattern>/admin</url-pattern>
+        <url-pattern>/add-quiz</url-pattern>
+        <url-pattern>/reset-quiz</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>UserController</servlet-name>
+        <servlet-class>com.kth.assignment3.controllers.UserController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserController</servlet-name>
+        <url-pattern>/login</url-pattern>
+        <url-pattern>/register</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
