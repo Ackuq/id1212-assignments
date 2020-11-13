@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.Socket;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.util.Hashtable;
@@ -15,15 +14,10 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 
 public class HTTPServer {
-
-  /*
-   * keytool -genkeypair -alias ssl-server -keyalg EC \ -sigalg SHA384withECDSA
-   * -keysize 256 -keystore servercert.p12 \ -storetype pkcs12 -v -storepass
-   * abc123 -validity 10000 -ext san=ip:127.0.0.1
-   */
 
   private static void sendHTML(DataOutputStream out, String cookieHeader, String reply, boolean restart)
       throws IOException {
@@ -36,95 +30,113 @@ public class HTTPServer {
     out.writeBytes(HTTPHeader + "\r\n" + contentType + "\r\n" + cookieHeader + "\r\n\r\n" + html);
   }
 
-  public static SSLContext initSSLServer() throws Exception {
-    String trustStoreName = "truststore.jks";
-    char[] trustStorePassword = "password".toCharArray();
+  private final static int port = 443;
+  // Trust store constants
+  private final static String TRUST_STORE_NAME = "servercert.p12";
+  private final static char[] TRUST_STORE_PASSWORD = "abc123".toCharArray();
+  // Key store constants
+  private final static String KEY_STORE_NAME = "servercert.p12";
+  private final static char[] KEY_STORE_PASSWORD = "abc123".toCharArray();
 
-    String keyStoreName = "KeyStore.jks";
-    char[] keyStorePassword = "password".toCharArray();
+  // Reply strings
+  public final static String START_MESSAGE = "Guess a number between 1 and 100: ";
+  public final static String TOO_HIGH_MESSAGE = "That's too high. Please guess lower: ";
+  public final static String TOO_LOW_MESSAGE = "That's too low. Please guess higher: ";
 
+  private final static String successMessage(int attempts) {
+    return String.format("You made it in %d amount of guess(es): ", attempts);
+  }
+
+  // The context is shared between client and server for easier testing
+  public static SSLContext setupContext() throws Exception {
+    // Get trust store
     KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-    InputStream tstore = HTTPServer.class.getResourceAsStream("/" + trustStoreName);
+    InputStream trustStoreReader = HTTPServer.class.getResourceAsStream("/" + TRUST_STORE_NAME);
+    trustStore.load(trustStoreReader, TRUST_STORE_PASSWORD);
+    trustStoreReader.close();
+    // Create trust store manager and attach trust store to the manager
+    TrustManagerFactory trustManagerFactory = TrustManagerFactory
+        .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    trustManagerFactory.init(trustStore);
 
-    // trustStore.load(tstore, trustStorePassword);
-    // tstore.close();
-    // TrustManagerFactory tmf =
-    // TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    // tmf.init(trustStore);
-
+    // Get key store
     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-    InputStream kstore = HTTPServer.class.getResourceAsStream("/" + keyStoreName);
-    keyStore.load(kstore, keyStorePassword);
-    KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    kmf.init(keyStore, keyStorePassword);
-    SSLContext ctx = SSLContext.getInstance("TLS");
-    ctx.init(kmf.getKeyManagers(), null, SecureRandom.getInstanceStrong());
+    InputStream keyStoreReader = HTTPServer.class.getResourceAsStream("/" + KEY_STORE_NAME);
+    keyStore.load(keyStoreReader, KEY_STORE_PASSWORD);
+    // Create key store manager and attach key store to the manager
+    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+    keyManagerFactory.init(keyStore, KEY_STORE_PASSWORD);
 
-    return ctx;
+    // Create TLS context and attach the managers to it
+    SSLContext context = SSLContext.getInstance("TLS");
+    context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(),
+        SecureRandom.getInstanceStrong());
+
+    return context;
   }
 
   public static void main(String[] args) throws IOException, Exception {
-    int port = 443;
+    SSLContext context = setupContext();
 
-    SSLContext ctx = initSSLServer();
-
-    SSLServerSocketFactory sslServerFactory = ctx.getServerSocketFactory();
-
-    SSLServerSocket serverSocket = (SSLServerSocket) sslServerFactory.createServerSocket(443);
-    Socket socket = null;
+    // Create server socket
+    SSLServerSocketFactory factory = context.getServerSocketFactory();
+    SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port);
     System.out.println("Server listening on port " + port);
+
+    // Connection socket
+    SSLSocket socket = null;
+    // Create empty storage
     Hashtable<String, Guesser> storage = new Hashtable<String, Guesser>();
-    serverSocket.setWantClientAuth(false);
-    while ((socket = serverSocket.accept()) != null) {
-      BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-      DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+    while ((socket = (SSLSocket) serverSocket.accept()) != null) {
+      try {
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
-      String cookieHeader = "";
-      Guesser currentClient;
-      String cookie = "";
-      String reply = "";
-      String guess = null;
-      String text = in.readLine();
+        String cookieHeader = "";
+        Guesser currentClient;
+        String cookie = "";
+        String guess = null;
+        String text = in.readLine();
 
-      if (text.contains("?guess=")) {
-        guess = text.split("/?guess=")[1].split(" ")[0];
-      }
-
-      while ((text = in.readLine()) != null && !text.isEmpty()) {
-        if (text.startsWith("Cookie")) {
-          cookie = parseCookieId(text).trim();
+        if (text.contains("?guess=")) {
+          guess = text.split("/?guess=")[1].split(" ")[0];
         }
-      }
 
-      if (cookie.equals("") || !storage.containsKey(cookie)) {
-        String id = UUID.randomUUID().toString();
-        currentClient = new Guesser(id);
-        storage.put(id, currentClient);
-        cookieHeader = "Set-Cookie: id=" + id;
-      } else {
-        currentClient = storage.get(cookie);
-      }
+        while ((text = in.readLine()) != null && !text.isEmpty()) {
+          if (text.startsWith("Cookie")) {
+            cookie = parseCookieId(text).trim();
+          }
+        }
 
-      if (guess != null && !guess.isEmpty()) {
-        int cmp = currentClient.guess(Integer.parseInt(guess));
-        if (cmp == 0) {
-          reply = String.format("You made it in %d amount of guess(es): ", currentClient.getGuesses());
-          storage.remove(currentClient.getId());
-          sendHTML(out, cookieHeader, reply, true);
-        } else if (cmp > 0) {
-          reply = "That's too high. Please guess lower: ";
-          sendHTML(out, cookieHeader, reply, false);
+        if (cookie.equals("") || !storage.containsKey(cookie)) {
+          String id = UUID.randomUUID().toString();
+          currentClient = new Guesser(id);
+          storage.put(id, currentClient);
+          cookieHeader = "Set-Cookie: id=" + id;
         } else {
-          reply = "That's too low. Please guess higher: ";
-          sendHTML(out, cookieHeader, reply, false);
+          currentClient = storage.get(cookie);
         }
-      } else {
-        reply = "Guess a number between 1 and 100: ";
-        sendHTML(out, cookieHeader, reply, false);
+
+        if (guess != null && !guess.isEmpty()) {
+          int cmp = currentClient.guess(Integer.parseInt(guess));
+          if (cmp == 0) {
+            storage.remove(currentClient.getId());
+            sendHTML(out, cookieHeader, successMessage(currentClient.getGuesses()), true);
+          } else if (cmp > 0) {
+            sendHTML(out, cookieHeader, TOO_HIGH_MESSAGE, false);
+          } else {
+            sendHTML(out, cookieHeader, TOO_LOW_MESSAGE, false);
+          }
+        } else {
+          sendHTML(out, cookieHeader, START_MESSAGE, false);
+        }
+
+        out.close();
+        in.close();
+      } catch (Exception e) {
+        System.out.println(e);
       }
 
-      out.close();
-      in.close();
     }
     serverSocket.close();
   }
