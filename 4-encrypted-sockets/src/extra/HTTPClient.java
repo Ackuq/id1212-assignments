@@ -8,7 +8,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
 public class HTTPClient {
-  private static final int attempts = 100;
+  private static final int ATTEMPTS = 100;
   private static final String PROTOCOL = "https";
 
   private static final String HOST = PROTOCOL + "://127.0.0.1";
@@ -68,8 +68,9 @@ public class HTTPClient {
     // Apply the socket factory to each HTTPS connection
     HttpsURLConnection.setDefaultSSLSocketFactory(factory);
 
-    int[] attemptResults = new int[attempts];
-    for (int i = 0; i < attempts; i++) {
+    System.out.println(String.format("Playing the game for %s rounds", ATTEMPTS));
+    int[] attemptResults = new int[ATTEMPTS];
+    for (int i = 0; i < ATTEMPTS; i++) {
       int guesses = playGame();
       attemptResults[i] = guesses;
     }
@@ -80,6 +81,6 @@ public class HTTPClient {
       sum += attemptResults[i];
     }
 
-    System.out.println("Average amount of guesses: " + sum / attempts);
+    System.out.println("Average amount of guesses: " + sum / ATTEMPTS);
   }
 }
