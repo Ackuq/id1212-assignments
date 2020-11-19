@@ -5,6 +5,8 @@ compile:
 start-rmi:
 	cd build && rmiregistry &
 
-run:
-	java -classpath build server.RMIServer  
+run-server:
+	cd build && java server.RMIServer  
 
+run-client:
+	cd build && java client.RMIClient
