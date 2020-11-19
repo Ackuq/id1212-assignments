@@ -93,10 +93,11 @@ public class RMIServer implements Mail {
                 sb.append("This is just an input stream\n");
                 sb.append("---------------------------\n");
                 InputStream is = (InputStream) o;
-                is = (InputStream) o;
                 int c;
                 while ((c = is.read()) != -1)
-                    System.out.write(c);
+                    sb.append(c);
+                sb.append('\n');
+                is.close();
             } else {
                 sb.append("This is an unknown type\n");
                 sb.append("---------------------------\n");
