@@ -5,54 +5,70 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TableLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp">
+        android:orientation="vertical"
+        android:paddingHorizontal="?attr/dialogPreferredPadding">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center">
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:autofillHints="@string/autofill_username"
+            android:ems="10"
+            android:hint="@string/username_hint"
+            android:inputType="textPersonName" />
 
-            <EditText
-                android:id="@+id/username"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:autofillHints="@string/autofill_username"
-                android:ems="10"
-                android:hint="@string/username_hint"
-                android:inputType="textPersonName" />
-        </TableRow>
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:autofillHints="@string/autofill_password"
+            android:ems="10"
+            android:hint="@string/password_hint"
+            android:inputType="textPassword" />
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center">
+        <Button
+            android:id="@+id/fetch_mail_button"
+            android:layout_width="210dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:onClick="getMail"
+            android:text="@string/fetch_email_text" />
 
-            <EditText
-                android:id="@+id/password"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:autofillHints="@string/autofill_password"
-                android:ems="10"
-                android:hint="@string/password_hint"
-                android:inputType="textPassword" />
-        </TableRow>
+        <TextView
+            android:id="@+id/subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp" />
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center">
+        <TextView
+            android:id="@+id/to"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-            <Button
-                android:id="@+id/fetch_mail_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="getMail"
-                android:text="@string/fetch_email_text" />
-        </TableRow>
+        <TextView
+            android:id="@+id/from"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-    </TableLayout>
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/design_default_color_error" />
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
