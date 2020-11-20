@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Extra</string>
+    <string name="password_hint">Password</string>
+    <string name="username_hint">Username</string>
+    <string name="fetch_email_text">Fetch Email</string>
+    <string name="autofill_username">username</string>
+    <string name="autofill_password">password</string>
+</resources>
