@@ -43,93 +43,80 @@ public class RMIServer implements Mail {
 
         Message message = inbox.getMessage(inbox.getMessageCount());
 
-        String s = writePart(message, new StringBuilder());
+        String parsedMessage = parsePart(message, new StringBuilder());
 
         // close the store and folder objects
         inbox.close(false);
         store.close();
-        return s;
+        return parsedMessage;
     }
 
-    /*
-     * This method checks for content-type based on which, it processes and fetches
-     * the content of the message
-     */
-    public static String writePart(Part p, StringBuilder sb) throws Exception {
-        if (p instanceof Message)
-            // Call methos writeEnvelope
-            writeEnvelope((Message) p, sb);
-
+    public static String parsePart(Part part, StringBuilder sb) throws Exception {
+        if (part instanceof Message) {
+            // Parse the headers
+            parseHeaders((Message) part, sb);
+        }
         sb.append("----------------------------\n");
-        sb.append("CONTENT-TYPE: " + p.getContentType() + "\n");
-
-        // check if the content is plain text
-        if (p.isMimeType("text/plain")) {
-            sb.append((String) p.getContent() + "\n");
+        // Check if just plain text
+        if (part.isMimeType("text/plain")) {
+            sb.append((String) part.getContent() + "\n");
         }
-        // check if the content has attachment
-        else if (p.isMimeType("multipart/*")) {
-            sb.append("This is a Multipart\n");
-            sb.append("---------------------------\n");
-            Multipart mp = (Multipart) p.getContent();
+        // Check if attachments are found
+        else if (part.isMimeType("multipart/*")) {
+            Multipart mp = (Multipart) part.getContent();
             int count = mp.getCount();
-            for (int i = 0; i < count; i++)
-                writePart(mp.getBodyPart(i), sb);
+            for (int i = 0; i < count; i++) {
+                parsePart(mp.getBodyPart(i), sb);
+            }
         }
-        // check if the content is a nested message
-        else if (p.isMimeType("message/rfc822")) {
-            sb.append("This is a Nested Message\n");
-            sb.append("---------------------------\n");
-            writePart((Part) p.getContent(), sb);
+        // Check if nested message
+        else if (part.isMimeType("message/rfc822")) {
+            parsePart((Part) part.getContent(), sb);
         }
-        // check if the content is an inline image
+        // Check when type is unknown
         else {
-            Object o = p.getContent();
-            if (o instanceof String) {
-                sb.append("This is a string\n");
-                sb.append("---------------------------\n");
-                sb.append((String) o);
-            } else if (o instanceof InputStream) {
-                sb.append("This is just an input stream\n");
-                sb.append("---------------------------\n");
-                InputStream is = (InputStream) o;
-                int c;
-                while ((c = is.read()) != -1)
-                    sb.append(c);
+            Object object = part.getContent();
+            if (object instanceof String) {
+                sb.append((String) object);
+            } else if (object instanceof InputStream) {
+                InputStream is = (InputStream) object;
+                int character;
+                while ((character = is.read()) != -1) {
+                    sb.append(character);
+                }
                 sb.append('\n');
                 is.close();
             } else {
-                sb.append("This is an unknown type\n");
-                sb.append("---------------------------\n");
-                sb.append(o.toString());
+                sb.append(object.toString());
             }
         }
         return sb.toString();
     }
 
-    /*
-     * This method would print FROM,TO and SUBJECT of the message
-     */
-    public static void writeEnvelope(Message m, StringBuilder sb) throws Exception {
-        sb.append("This is the message envelope\n");
+    public static void parseHeaders(Message message, StringBuilder sb) throws Exception {
         sb.append("---------------------------\n");
-        Address[] a;
+        Address[] addresses;
 
-        // FROM
-        if ((a = m.getFrom()) != null) {
-            for (int j = 0; j < a.length; j++)
-                sb.append("FROM: " + a[j].toString() + "\n");
+        // Parse list of senders
+        if ((addresses = message.getFrom()) != null) {
+            String[] addressStrings = new String[addresses.length];
+            for (int i = 0; i < addresses.length; i++) {
+                addressStrings[i] = addresses[i].toString();
+            }
+            sb.append("From: " + String.join("delimiter", addressStrings) + '\n');
         }
-
-        // TO
-        if ((a = m.getRecipients(Message.RecipientType.TO)) != null) {
-            for (int j = 0; j < a.length; j++)
-                sb.append("TO: " + a[j].toString() + "\n");
+        // Parse list of recipients
+        if ((addresses = message.getRecipients(Message.RecipientType.TO)) != null) {
+            String[] addressStrings = new String[addresses.length];
+            for (int i = 0; i < addresses.length; i++) {
+                addressStrings[i] = addresses[i].toString();
+            }
+            sb.append("To: " + String.join("delimiter", addressStrings) + '\n');
         }
-
-        // SUBJECT
-        if (m.getSubject() != null)
-            sb.append("SUBJECT: " + m.getSubject() + "\n");
+        // Parse subject
+        if (message.getSubject() != null) {
+            sb.append("Subject: " + message.getSubject() + "\n");
+        }
 
     }
 
